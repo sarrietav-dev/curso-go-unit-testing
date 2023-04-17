@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 )
 
 func main() {
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 
-	router.HandleFunc("/pokemon/{id}", controller.GetPokemon).Methods("GET")
+	router.Get("/pokemon/{id}", controller.GetPokemon)
 
 	err := http.ListenAndServe(":8080", router)
 	if err != nil {
