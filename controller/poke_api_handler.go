@@ -9,7 +9,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 )
 
 // respondwithJSON write json response format
@@ -29,7 +29,7 @@ func respondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
 }
 
 func GetPokemon(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
+	id := chi.URLParam(r, "id")
 
 	request := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s", id)
 
