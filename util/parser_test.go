@@ -21,9 +21,23 @@ func TestParser(t *testing.T) {
 
 	var pokemon models.Pokemon
 
-	unmarshalJson("samples/api_response.json", pokemon, c)
+	unmarshalJson("samples/api_response.json", &pokemon, c)
 
 	c.Equal(parsedPokemon, pokemon)
+}
+
+func TestPokemonTypeNotFound(t *testing.T) {
+	c := require.New(t)
+
+	var pokeApiResponse models.PokeApiPokemonResponse
+
+	unmarshalJson("samples/pokeapi_response.json", &pokeApiResponse, c)
+
+	pokeApiResponse.PokemonType = []models.PokemonType{}
+
+	_, err := ParsePokemon(pokeApiResponse)
+	c.NotNil(err)
+	c.EqualError(ErrNotFoundPokemonType, err.Error())
 }
 
 func unmarshalJson(path string, v any, c *require.Assertions) {
