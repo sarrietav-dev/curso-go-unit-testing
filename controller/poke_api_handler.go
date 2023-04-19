@@ -31,23 +31,10 @@ func respondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
 func GetPokemon(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	request := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s", id)
+	apiPokemon, err := GetPokemonFromPokeApi(id)
 
-	response, err := http.Get(request)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var apiPokemon models.PokeApiPokemonResponse
-
-	err = json.Unmarshal(body, &apiPokemon)
-	if err != nil {
-		log.Fatal(err)
+		respondwithJSON(w, http.StatusInternalServerError, fmt.Sprintf("error found: %s", err.Error()))
 	}
 
 	parsedPokemon, err := util.ParsePokemon(apiPokemon)
@@ -56,4 +43,27 @@ func GetPokemon(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondwithJSON(w, http.StatusOK, parsedPokemon)
+}
+
+func GetPokemonFromPokeApi(id string) (models.PokeApiPokemonResponse, error) {
+	request := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s", id)
+
+	response, err := http.Get(request)
+	if err != nil {
+		return models.PokeApiPokemonResponse{}, err
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return models.PokeApiPokemonResponse{}, err
+	}
+
+	var apiPokemon models.PokeApiPokemonResponse
+
+	err = json.Unmarshal(body, &apiPokemon)
+	if err != nil {
+		return models.PokeApiPokemonResponse{}, err
+	}
+
+	return apiPokemon, nil
 }
