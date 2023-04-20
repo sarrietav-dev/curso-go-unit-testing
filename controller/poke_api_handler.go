@@ -67,7 +67,7 @@ func GetPokemonFromPokeApi(id string) (models.PokeApiPokemonResponse, error) {
 		return models.PokeApiPokemonResponse{}, ErrPokemonNotFound
 	}
 
-	if response.StatusCode == http.StatusOK {
+	if response.StatusCode != http.StatusOK {
 		return models.PokeApiPokemonResponse{}, ErrPokeApiFailure
 	}
 
