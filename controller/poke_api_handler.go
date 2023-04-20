@@ -4,12 +4,18 @@ import (
 	"catching-pokemons/models"
 	"catching-pokemons/util"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+)
+
+var (
+	ErrPokemonNotFound = errors.New("pokemon not found")
+	ErrPokeApiFailure  = errors.New("unexpected response from the pokeapi")
 )
 
 // respondwithJSON write json response format
@@ -33,6 +39,10 @@ func GetPokemon(w http.ResponseWriter, r *http.Request) {
 
 	apiPokemon, err := GetPokemonFromPokeApi(id)
 
+	if errors.Is(err, ErrPokemonNotFound) {
+		respondwithJSON(w, http.StatusNotFound, fmt.Sprintf("pokemon not found: %s", id))
+	}
+
 	if err != nil {
 		respondwithJSON(w, http.StatusInternalServerError, fmt.Sprintf("error found: %s", err.Error()))
 	}
@@ -51,6 +61,14 @@ func GetPokemonFromPokeApi(id string) (models.PokeApiPokemonResponse, error) {
 	response, err := http.Get(request)
 	if err != nil {
 		return models.PokeApiPokemonResponse{}, err
+	}
+
+	if response.StatusCode == http.StatusNotFound {
+		return models.PokeApiPokemonResponse{}, ErrPokemonNotFound
+	}
+
+	if response.StatusCode == http.StatusOK {
+		return models.PokeApiPokemonResponse{}, ErrPokeApiFailure
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
